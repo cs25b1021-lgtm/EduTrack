@@ -403,10 +403,7 @@ def seed_database(conn: sqlite3.Connection) -> None:
             conn.commit()
         return
 
-    admin = conn.execute(
-    "SELECT id FROM users WHERE email = ?",
-    ("admin@college.local",)
-).fetchone()["id"]
+    admin = insert_user(conn, "ADMIN", "Academic Admin", "admin@college.local", "admin123", "APPROVED")
     conn.execute(
         "INSERT INTO activity_logs (actor_id, action, entity, entity_id, created_at) VALUES (?, ?, ?, ?, ?)",
         (admin, "Created clean administrator account", "system", None, now_iso()),
@@ -487,7 +484,6 @@ def seed_database(conn: sqlite3.Connection) -> None:
         (cse, bca, 1, "BCA101", "Web Fundamentals", 4, 75),
     ).lastrowid
 
-    admin = insert_user(conn, "ADMIN", "Academic Admin", "admin@college.local", "admin123", "APPROVED")
     teacher_ravi = insert_user(conn, "TEACHER", "Dr. Ravi Sharma", "ravi@college.local", "teacher123", "APPROVED")
     teacher_priya = insert_user(conn, "TEACHER", "Prof. Priya Nair", "priya@college.local", "teacher123", "APPROVED")
     pending_teacher = insert_user(conn, "TEACHER", "Neha Verma", "neha@college.local", "teacher123", "PENDING")
