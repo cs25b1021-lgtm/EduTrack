@@ -687,13 +687,20 @@ function subjectForm(data) {
 }
 
 function assignmentForm(data) {
+  const canAssign = data.teachers.length && data.subjects.length && data.sections.length;
+  const missing = [
+    data.teachers.length ? "" : "approved teacher",
+    data.subjects.length ? "" : "subject",
+    data.sections.length ? "" : "section",
+  ].filter(Boolean);
   return `
     <form class="panel form-stack" id="assignmentForm">
       <div class="panel-header"><div><h3>Teacher Assignment</h3><p>Link one teacher with one subject and class.</p></div></div>
-      <label>Teacher<select name="teacherId" required>${optionList(data.teachers, "", (t) => `${t.name} (${t.employeeId})`)}</select></label>
-      <label>Subject<select name="subjectId" required>${optionList(data.subjects, "", (s) => `${s.code} - ${s.name}`)}</select></label>
-      <label>Section<select name="sectionId" required>${optionList(data.sections, "", (s) => `${s.name} Sem ${s.semester}`)}</select></label>
-      <button class="primary-action" type="submit">Assign Teacher</button>
+      ${canAssign ? "" : `<div class="empty-state">Create and approve at least one ${escapeHtml(missing.join(", "))} first.</div>`}
+      <label>Teacher<select name="teacherId" required ${data.teachers.length ? "" : "disabled"}>${optionListWithPlaceholder(data.teachers, "Select approved teacher", (t) => `${t.name} (${t.employeeId})`)}</select></label>
+      <label>Subject<select name="subjectId" required ${data.subjects.length ? "" : "disabled"}>${optionListWithPlaceholder(data.subjects, "Select subject", (s) => `${s.code} - ${s.name}`)}</select></label>
+      <label>Section<select name="sectionId" required ${data.sections.length ? "" : "disabled"}>${optionListWithPlaceholder(data.sections, "Select section", (s) => `${s.name} Sem ${s.semester}`)}</select></label>
+      <button class="primary-action" type="submit" ${canAssign ? "" : "disabled"}>Assign Teacher</button>
     </form>
   `;
 }

@@ -1746,9 +1746,31 @@ class AppHandler(BaseHTTPRequestHandler):
             return
         if method == "POST" and path == "/api/admin/assignments":
             data = self.read_json()
+            teacher_id = int_field(data, "teacherId")
+            subject_id = int_field(data, "subjectId")
+            section_id = int_field(data, "sectionId")
+            teacher = conn.execute(
+                """
+                SELECT 1
+                FROM users u
+                JOIN teacher_profiles tp ON tp.user_id = u.id
+                WHERE u.id = ? AND u.role = 'TEACHER' AND u.status = 'APPROVED'
+                """,
+                (teacher_id,),
+            ).fetchone()
+            if not teacher:
+                raise HttpError(400, "Select an approved teacher before assigning a class.")
+            subject = conn.execute("SELECT course_id, semester FROM subjects WHERE id = ?", (subject_id,)).fetchone()
+            if not subject:
+                raise HttpError(400, "Select a valid subject before assigning a teacher.")
+            section = conn.execute("SELECT course_id, semester FROM sections WHERE id = ?", (section_id,)).fetchone()
+            if not section:
+                raise HttpError(400, "Select a valid section before assigning a teacher.")
+            if subject["course_id"] != section["course_id"] or subject["semester"] != section["semester"]:
+                raise HttpError(400, "Subject and section must belong to the same course and semester.")
             cur = conn.execute(
                 "INSERT INTO teacher_subjects (teacher_id, subject_id, section_id) VALUES (?, ?, ?)",
-                (int_field(data, "teacherId"), int_field(data, "subjectId"), int_field(data, "sectionId")),
+                (teacher_id, subject_id, section_id),
             )
             log_activity(conn, admin["id"], "Assigned teacher to subject", "assignment", cur.lastrowid)
             conn.commit()
