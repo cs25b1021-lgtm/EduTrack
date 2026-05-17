@@ -21,7 +21,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 BASE_DIR = Path(__file__).resolve().parent
 PUBLIC_DIR = BASE_DIR / "public"
 DATA_DIR = BASE_DIR / "data"
-DB_PATH = DATA_DIR / "student_records.sqlite3"
+DB_PATH = DATA_DIR / "student_records_v2.sqlite3"
 HOST = "0.0.0.0"
 PORT = int(os.environ.get("PORT", "8000"))
 SESSION_COOKIE = "sarams_session"
@@ -403,13 +403,16 @@ def seed_database(conn: sqlite3.Connection) -> None:
             conn.commit()
         return
 
-    admin = insert_user(conn, "ADMIN", "System Administrator", "admin@college.local", "admin123", "APPROVED")
+    admin = conn.execute(
+    "SELECT id FROM users WHERE email = ?",
+    ("admin@college.local",)
+).fetchone()["id"]
     conn.execute(
         "INSERT INTO activity_logs (actor_id, action, entity, entity_id, created_at) VALUES (?, ?, ?, ?, ?)",
         (admin, "Created clean administrator account", "system", None, now_iso()),
     )
     conn.commit()
-    return
+    
 
     cse = conn.execute(
         "INSERT INTO departments (name, code) VALUES (?, ?)",
