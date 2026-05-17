@@ -26,7 +26,7 @@ The architecture is intentionally beginner-friendly:
 - `public/index.html`: application shell
 - `public/styles.css`: responsive UI styling
 - `public/app.js`: role dashboards and frontend workflows
-- `data/student_records.sqlite3`: generated automatically on first run
+- `data/student_records_v2.sqlite3`: generated automatically on first run
 
 ## Run
 
@@ -45,12 +45,8 @@ http://127.0.0.1:8000
 | Role | Email | Password |
 | --- | --- | --- |
 | Admin | `admin@college.local` | `admin123` |
-| Teacher | `ravi@college.local` | `teacher123` |
-| Teacher | `priya@college.local` | `teacher123` |
-| Student | `ananya@college.local` | `student123` |
-| Student | `karan@college.local` | `student123` |
 
-There are also pending users visible in the Admin dashboard.
+The app starts clean with only the admin account. Create departments, courses, sections, subjects, then register and approve teachers/students.
 
 ## Core Workflows To Try
 

@@ -394,22 +394,15 @@ def insert_user(
 def seed_database(conn: sqlite3.Connection) -> None:
     existing = conn.execute("SELECT COUNT(*) AS total FROM users").fetchone()["total"]
     if existing:
-        admin = conn.execute("SELECT id, password_hash FROM users WHERE email = ?", ("admin@college.local",)).fetchone()
-        if admin and not verify_password("admin123", admin["password_hash"]):
-            conn.execute(
-                "UPDATE users SET password_hash = ?, status = 'APPROVED' WHERE id = ?",
-                (hash_password("admin123"), admin["id"]),
-            )
-            conn.commit()
         return
 
-    admin = insert_user(conn, "ADMIN", "Academic Admin", "admin@college.local", "admin123", "APPROVED")
+    admin = insert_user(conn, "ADMIN", "System Administrator", "admin@college.local", "admin123", "APPROVED")
     conn.execute(
         "INSERT INTO activity_logs (actor_id, action, entity, entity_id, created_at) VALUES (?, ?, ?, ?, ?)",
         (admin, "Created clean administrator account", "system", None, now_iso()),
     )
     conn.commit()
-    
+    return
 
     cse = conn.execute(
         "INSERT INTO departments (name, code) VALUES (?, ?)",
@@ -1781,7 +1774,7 @@ class AppHandler(BaseHTTPRequestHandler):
             self.send_json(self.marks_report(conn, query))
             return
         if method == "GET" and path == "/api/admin/reports/attendance.csv":
-            rows = self.attendance_report(conn, query)["rows"]
+            rows = self.attendance_report(conn, query, paginate=False)["rows"]
             csv_body = create_csv(
                 ["Roll", "Student", "Section", "Subject", "Total", "Present", "Absent", "Leave", "Percentage", "Required"],
                 [
@@ -1807,7 +1800,7 @@ class AppHandler(BaseHTTPRequestHandler):
             )
             return
         if method == "GET" and path == "/api/admin/reports/marks.csv":
-            rows = self.marks_report(conn, query)["rows"]
+            rows = self.marks_report(conn, query, paginate=False)["rows"]
             csv_body = create_csv(
                 ["Roll", "Student", "Section", "Subject", "Exam", "Marks", "Max", "Grade", "Percentage"],
                 [
@@ -1833,7 +1826,7 @@ class AppHandler(BaseHTTPRequestHandler):
             return
         raise HttpError(404, "Admin route not found.")
 
-    def attendance_report(self, conn: sqlite3.Connection, query: dict[str, list[str]]) -> list[dict]:
+    def attendance_report(self, conn: sqlite3.Connection, query: dict[str, list[str]], paginate: bool = True) -> dict:
         subject_id = int(first(query, "subjectId", "0") or 0) or None
         section_id = int(first(query, "sectionId", "0") or 0) or None
         page, offset = page_offset(query)
@@ -1843,22 +1836,32 @@ class AppHandler(BaseHTTPRequestHandler):
             parse_date(date_from)
         if date_to:
             parse_date(date_to)
+        if paginate:
+            rows = attendance_analytics(
+                conn,
+                subject_id=subject_id,
+                section_id=section_id,
+                date_from=date_from or None,
+                date_to=date_to or None,
+                limit=PAGE_SIZE + 1,
+                offset=offset,
+            )
+            return {"rows": rows[:PAGE_SIZE], "page": page, "hasNext": len(rows) > PAGE_SIZE}
         rows = attendance_analytics(
             conn,
             subject_id=subject_id,
             section_id=section_id,
             date_from=date_from or None,
             date_to=date_to or None,
-            limit=PAGE_SIZE + 1,
-            offset=offset,
         )
-        return {"rows": rows[:PAGE_SIZE], "page": page, "hasNext": len(rows) > PAGE_SIZE}
+        return {"rows": rows, "page": 0, "hasNext": False}
 
-    def marks_report(self, conn: sqlite3.Connection, query: dict[str, list[str]]) -> dict:
+    def marks_report(self, conn: sqlite3.Connection, query: dict[str, list[str]], paginate: bool = True) -> dict:
         subject_id = int(first(query, "subjectId", "0") or 0) or None
         section_id = int(first(query, "sectionId", "0") or 0) or None
         exam_id = int(first(query, "examId", "0") or 0) or None
         page, offset = page_offset(query)
+        limit_sql = "LIMIT ? OFFSET ?" if paginate else ""
         params: list[object] = []
         where = ["u.status = 'APPROVED'"]
         if subject_id:
@@ -1885,18 +1888,18 @@ class AppHandler(BaseHTTPRequestHandler):
             LEFT JOIN marks m ON m.exam_id = e.id AND m.student_id = u.id
             WHERE {" AND ".join(where)}
             ORDER BY sec.name, sub.code, e.exam_date, sp.roll_number
-            LIMIT ? OFFSET ?
+            {limit_sql}
             """,
-            params + [PAGE_SIZE + 1, offset],
+            params + ([PAGE_SIZE + 1, offset] if paginate else []),
         ).fetchall()
         result = []
-        for row in rows[:PAGE_SIZE]:
+        for row in rows[:PAGE_SIZE] if paginate else rows:
             item = dict_row(row)
             marks = item["marksObtained"]
             max_marks = item["maxMarks"] or 0
             item["percentage"] = round((float(marks) / float(max_marks)) * 100, 2) if marks is not None and max_marks else 0
             result.append(item)
-        return {"rows": result, "page": page, "hasNext": len(rows) > PAGE_SIZE}
+        return {"rows": result, "page": page if paginate else 0, "hasNext": len(rows) > PAGE_SIZE if paginate else False}
 
     def handle_teacher(self, conn: sqlite3.Connection, method: str, path: str, query: dict[str, list[str]]) -> None:
         teacher = self.require_user(conn, ("TEACHER",))
