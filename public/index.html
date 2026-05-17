@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Student Academic Record & Attendance Management System</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <button id="themeToggle" class="theme-toggle" type="button" aria-pressed="false">Dark mode</button>
+
+  <main id="authScreen" class="auth-screen">
+    <section class="auth-card">
+      <div class="auth-identity">
+        <div class="brand-row">
+          <div class="brand-mark" aria-hidden="true">SR</div>
+          <div>
+            <p class="eyebrow">College Academic Portal</p>
+            <h1>Student Academic Record & Attendance Management System</h1>
+          </div>
+        </div>
+        <div class="identity-board" aria-hidden="true">
+          <div class="board-top">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <div class="board-row wide"></div>
+          <div class="board-row"></div>
+          <div class="board-grid">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <div class="board-table">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="auth-panel">
+        <div class="tabs" role="tablist">
+          <button class="tab active" data-auth-tab="login" type="button">Login</button>
+          <button class="tab" data-auth-tab="register" type="button">Register</button>
+        </div>
+
+        <form id="loginForm" class="form-stack">
+          <label>Email
+            <input name="email" type="email" autocomplete="email" required>
+          </label>
+          <label>Password
+            <input name="password" type="password" autocomplete="current-password" required>
+          </label>
+          <button class="primary-action" type="submit">Login</button>
+        </form>
+
+        <form id="registerForm" class="form-stack hidden">
+          <label>Role
+            <select name="role" id="registerRole">
+              <option value="STUDENT">Student</option>
+              <option value="TEACHER">Teacher</option>
+            </select>
+          </label>
+          <div class="form-grid">
+            <label>Name
+              <input name="name" required>
+            </label>
+            <label>Email
+              <input name="email" type="email" required>
+            </label>
+          </div>
+          <div class="form-grid">
+            <label>Password
+              <input name="password" type="password" minlength="6" required>
+            </label>
+            <label>Phone
+              <input name="phone">
+            </label>
+          </div>
+          <label>Department
+            <select name="departmentId" data-options="departments"></select>
+          </label>
+          <div id="studentFields" class="form-stack compact">
+            <div class="form-grid">
+              <label>Roll number
+                <input name="rollNumber">
+              </label>
+              <label>Guardian name
+                <input name="guardianName">
+              </label>
+            </div>
+            <div class="form-grid">
+              <label>Course
+                <select name="courseId" data-options="courses"></select>
+              </label>
+              <label>Section
+                <select name="sectionId" data-options="sections"></select>
+              </label>
+            </div>
+            <label>Semester
+              <input name="semester" type="number" min="1" value="3">
+            </label>
+          </div>
+          <div id="teacherFields" class="form-stack compact hidden">
+            <div class="form-grid">
+              <label>Employee ID
+                <input name="employeeId">
+              </label>
+              <label>Title
+                <input name="title" value="Assistant Professor">
+              </label>
+            </div>
+          </div>
+          <button class="primary-action" type="submit">Submit for approval</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <div id="appShell" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="brand-row sidebar-brand">
+        <div class="brand-mark" aria-hidden="true">SR</div>
+        <div>
+          <strong>Academic Portal</strong>
+          <span id="roleBadge" class="muted"></span>
+        </div>
+      </div>
+      <nav id="mainNav" class="nav-list" aria-label="Main navigation"></nav>
+    </aside>
+
+    <section class="workspace">
+      <header class="topbar">
+        <div>
+          <p id="viewEyebrow" class="eyebrow">Dashboard</p>
+          <h2 id="viewTitle">Dashboard</h2>
+        </div>
+        <div class="topbar-actions">
+          <span id="userLabel" class="user-pill"></span>
+          <button id="logoutButton" class="secondary-action" type="button">Logout</button>
+        </div>
+      </header>
+      <div id="content" class="content" tabindex="-1"></div>
+    </section>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
