@@ -1090,3 +1090,22 @@ tr:last-child td {
     grid-template-columns: 1fr;
   }
 }
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+#logoutButton {
+  display: inline-flex !important;
+  visibility: visible !important;
+}
