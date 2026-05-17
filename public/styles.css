@@ -887,18 +887,12 @@ tr:last-child td {
 }
 
 .theme-toggle {
+  .theme-toggle {
   position: fixed;
-  right: 18px;
-  top: 18px;
-  z-index: 30;
-  min-height: 38px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--panel);
-  color: var(--text);
-  padding: 8px 12px;
-  font-weight: 800;
-  box-shadow: var(--shadow-soft);
+  right: 20px;
+  bottom: 20px;
+  z-index: 1000;
+}
 }
 
 .theme-toggle:hover {
